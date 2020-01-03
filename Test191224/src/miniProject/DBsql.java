@@ -193,7 +193,6 @@ public class DBsql {
 
 	// 예약 확인 (SDATE / FDATE 표시형식 수정해야 됨 + 상품가 총액 추가해야 됨)
 	public void reselectDB() {
-		//		String sql = "SELECT R.RESERVATIONNO, R.SDATE, R.FDATE, R.ANUMBER, R.CNUMBER, R.INUMBER, R.COUNTRY, R.AIRLINE FROM RESERVATION R, MEMBER M WHERE R.ID = M.ID";
 		String sql = "SELECT * FROM RESERVATION WHERE ID = ?";
 		try {
 			pstmt = con.prepareStatement(sql);

@@ -10,6 +10,7 @@ public class Member {
 	private String passportNo;
 	private String phone;
 	
+	
 	@Override
 	public String toString() {
 		return "Member [id=" + id + ", pw=" + pw + ", name=" + name + ", birth=" + birth + ", gender=" + gender

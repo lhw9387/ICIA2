@@ -3,9 +3,6 @@ package miniProject;
 import java.sql.*;
 import java.util.Scanner;
 
-import chamgo.Account;
-import chamgo.User;
-
 public class DBsql {
 
 	Scanner sc = new Scanner(System.in);
@@ -15,6 +12,7 @@ public class DBsql {
 	PreparedStatement pstmt;
 
 	ResultSet rs = null;
+	ResultSet loginRs = null;
 
 	Member mm = new Member();
 	Reservation res = new Reservation();
@@ -24,7 +22,7 @@ public class DBsql {
 		con = DBConnection.makeConnection();
 	}
 
-	// 회원가입	
+	// 회원가입
 	public void joinDB() {
 		String sql = "INSERT INTO MEMBER VALUES(MEMBER_seq.NextVal, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -51,9 +49,9 @@ public class DBsql {
 		}
 	}
 
-	// 	관리자 조회
+	// 관리자 조회
 	public void selectDB() {
-		String sql = "SELECT * FROM MEMBER";
+		String sql = "SELECT CUSTOMERNO, ID, PW, NAME, TO_CHAR(BIRTH,'YYYY/MM/DD') AS BIRTH, GENDER, PASSPORTNO, PHONE FROM MEMBER";
 		try {
 			pstmt = con.prepareStatement(sql);
 			rs = pstmt.executeQuery();
@@ -81,7 +79,7 @@ public class DBsql {
 
 	}
 
-	// 	회원 탈퇴
+	// 회원 탈퇴
 	public void deleteDB() {
 		String sql = "DELETE FROM MEMBER WHERE PW = ? AND ID = ?";
 		try {
@@ -91,9 +89,9 @@ public class DBsql {
 			System.out.print("비밀번호 확인 : ");
 			pstmt.setString(1, sc.next());
 			int result = pstmt.executeUpdate();
-			if(result > 0) {
+			if (result > 0) {
 				System.out.println("회원 탈퇴가 완료되었습니다.");
-			} else if(result == 0) {
+			} else if (result == 0) {
 				System.out.println("ID 또는 비밀번호가 틀렸습니다.");
 			}
 
@@ -102,9 +100,7 @@ public class DBsql {
 		}
 	}
 
-
-
-	// 로그인	
+	// 로그인
 	public void loginDB() {
 		boolean run = true;
 		String sql = "SELECT ID, PW FROM MEMBER WHERE PW = ? AND ID = ?";
@@ -116,9 +112,10 @@ public class DBsql {
 			System.out.print("PW : ");
 			String PW = sc.next();
 			pstmt.setString(1, PW);
-			rs = pstmt.executeQuery();
-			if (rs.next()) {
-				System.out.println(rs.getString("ID") + "님 환영합니다.");
+			// 로그인 당시 rs대신 loginRs로 로그인 데이터를 저장하여 예약확인 후 예약진행 시 생기는 ID공백을 해결
+			loginRs = pstmt.executeQuery();
+			if (loginRs.next()) {
+				System.out.println(loginRs.getString("ID") + "님 환영합니다.");
 				while (run) {
 					System.out.println("-----------------------------------------------------");
 					System.out.println(" 1. 예약진행 | 2. 예약확인 | 3. 예약변경 | 4. 예약취소 | 5. 로그아웃");
@@ -153,65 +150,124 @@ public class DBsql {
 
 	}
 
-	// 예약 진행 (상품가 계산식 있어야 됨.)
+	// 예약 진행 (총 가격 소수점 제거 완료 >> 그냥 int로 써봤는데 됐음.)
 	public void reservationDB() {
-		String sql = "INSERT INTO RESERVATION VALUES(RESERVATION_seq.NextVal, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO RESERVATION VALUES(RESERVATION_seq.NextVal, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try {
 			pstmt = con.prepareStatement(sql);
 			System.out.print("ID 확인 : ");
 			String id = sc.next();
 			pstmt.setString(8, id);
-			if(id.equals(rs.getString("ID"))) {
+			int price = 0;
+			if (id.equals(loginRs.getString("ID"))) {
+				System.out.println("-------------------------------");
+				System.out.println(" 1. 미국    | 상품가 : 100,000원/1인");
+				System.out.println(" 2. 유럽    | 상품가 : 150,000원/1인");
+				System.out.println(" 3. 동남아 | 상품가 : 50,000원/1인");
+				System.out.println(" 4. 중국    | 상품가 : 20,000원/1인"); 
+				System.out.println(" 5. 일본    | 상품가 : 30,000원/1인");
+				System.out.println("-------------------------------");
+				System.out.print("선택 : ");
+				int country = sc.nextInt();
+				switch (country) {
+				case 1:
+					price = 100000;
+					pstmt.setString(1, "미국");
+					break;
+				case 2:
+					price = 150000;
+					pstmt.setString(1, "유럽");
+					break;
+				case 3:
+					price = 50000;
+					pstmt.setString(1, "동남아");
+					break;
+				case 4:
+					price = 20000;
+					pstmt.setString(1, "중국");
+					break;
+				case 5:
+					price = 30000;
+					pstmt.setString(1, "일본");
+					break;
+				}
+				System.out.println("---------------");
+				System.out.println(" 1. KE | 2. OZ");
+				System.out.println("---------------");
+				System.out.print("선택 : ");
+				int airLine = sc.nextInt();
+				switch (airLine) {
+				case 1:
+					price = (int) ((double) price * 1.2);
+					pstmt.setString(2, "KE");
+					break;
+				case 2:
+					price = price;
+					pstmt.setString(2, "OZ");
+					break;
+				}
 				System.out.print("출발일 : ");
-				pstmt.setString(1, sc.next());
-				System.out.print("도착일 : ");
-				pstmt.setString(2, sc.next());
-				System.out.print("성인(명) : ");
 				pstmt.setString(3, sc.next());
+				System.out.print("도착일 : ");
+				pstmt.setString(4, sc.next());
+				System.out.print("성인(명) : ");
+				int anumber = sc.nextInt();
+				pstmt.setInt(5, anumber);
 				System.out.print("소아(명) : ");
-				pstmt.setString(4, sc.next());			
+				int cnumber = sc.nextInt();
+				pstmt.setInt(6, cnumber);
 				System.out.print("유아(명) : ");
-				pstmt.setString(5, sc.next());
-				System.out.print("나라 : ");
-				pstmt.setString(6, sc.next());
-				System.out.print("항공사(KE/OZ) : ");
-				pstmt.setString(7, sc.next());
+				int inumber = sc.nextInt();
+				pstmt.setInt(7, inumber);
+				int sal = (int) ((anumber * price) + (cnumber * price * 0.7) + (inumber * price * 0.2));
+				System.out.println("총 가격은 " + sal + "원 입니다.");
+				pstmt.setInt(9, sal);
 				int result = pstmt.executeUpdate();
-				if(result == 1) {
-					System.out.println("예약이 완료되었습니다.");	
+				if (result == 1) {
+					System.out.println("예약이 완료되었습니다.");
 				} else {
 					System.out.println("진행 된 예약이 존재합니다.");
 				}
 			} else {
-				System.out.println("ID가 틀렸습니다.");  
+				System.out.println("ID가 틀렸습니다.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	// 예약 확인 (SDATE / FDATE 표시형식 수정해야 됨 + 상품가 총액 추가해야 됨)
+	// 예약 확인 (SDATE / FDATE 표시형식 수정함 >> 출발 날짜에 TO_CHAR AS 도착 날짜에 TO_CHAR를 써주면 됐음 나머지
+	// 조회할 것들은 그대로 하나씩 입력)
 	public void reselectDB() {
-		String sql = "SELECT * FROM RESERVATION WHERE ID = ?";
+		String sql = "SELECT  RESERVATIONNO, COUNTRY, AIRLINE, TO_CHAR(FDATE,'YYYY/MM/DD') AS FDATE, "
+				+ "TO_CHAR(SDATE,'YYYY/MM/DD') AS SDATE, ANUMBER, CNUMBER, INUMBER, ID, SAL FROM RESERVATION WHERE ID = ?";
 		try {
 			pstmt = con.prepareStatement(sql);
 			System.out.print("ID 확인 : ");
 			String select = sc.next();
 			pstmt.setString(1, select);
 			rs = pstmt.executeQuery();
+			int next = 0;
+			while (true) {
 				if (rs.next()) {
 					System.out.print("예약번호 : " + rs.getInt("RESERVATIONNO") + "\t");
-					System.out.print("출발일 : " +  rs.getString("SDATE") + "\t");
+					System.out.print("출발일 : " + rs.getString("SDATE") + "\t");
 					System.out.print("도착일 : " + rs.getString("FDATE") + "\t");
 					System.out.print("성인 : " + rs.getInt("ANUMBER") + "명" + "\t");
 					System.out.print("소아 : " + rs.getInt("CNUMBER") + "명" + "\t");
 					System.out.print("유아 : " + rs.getInt("INUMBER") + "명" + "\t");
 					System.out.print("나라 : " + rs.getString("COUNTRY") + "\t");
-					System.out.println("항공사 : " + rs.getString("AIRLINE") + "\t");
+					System.out.print("항공사 : " + rs.getString("AIRLINE") + "\t");
+					System.out.println("총 가격 : " + rs.getInt("SAL") + "원" + "\t");
+					next = 1;
 				} else {
-					System.out.println("ID가 틀리거나 진행된 예약이 없습니다.");
+					break;
 				}
+			} 
+			if (next == 0) {
+				System.out.println("진행된 예약이 없거나 ID가 일치하지 않습니다.");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -219,58 +275,152 @@ public class DBsql {
 	}
 
 
-	// 예약 취소 (패널티 계산식 넣어야 됨.)
+	// 예약 취소 (패널티 계산식 넣음. >> 예약된 출발 날짜와 수정하는 당일의 현재 날짜를 비교하여 계산식 넣음.)
 	public void cancellDB() {
+		String sql2 = "SELECT SAL, ROUND(SDATE - SYSDATE) AS BOOKINGDAY FROM RESERVATION WHERE RESERVATIONNO = ? AND ID = ?";
 		String sql = "DELETE FROM RESERVATION WHERE RESERVATIONNO = ? AND ID = ?";
+		double price = 0;
+		int sal = 0;
+		int bookingDay = 0;
 		try {
-			pstmt = con.prepareStatement(sql);
+			pstmt = con.prepareStatement(sql2);
+			System.out.println("취소 패널티 확인");
 			System.out.print("ID 확인 : ");
 			pstmt.setString(2, sc.next());
 			System.out.print("예약번호 확인 : ");
 			pstmt.setString(1, sc.next());
-			int result = pstmt.executeUpdate();
-			if(result > 0) {
-				System.out.println("예약 취소가 완료되었습니다.");
-			} else if(result == 0) {
-				System.out.println("ID 또는 예약번호가 틀렸습니다.");
+			//
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				bookingDay = rs.getInt("BOOKINGDAY");
+				price = rs.getInt("SAL");
+				sal = rs.getInt("SAL");
 			}
+
+			if (bookingDay >= 30) {
+				price = price * 0;
+			} else if (bookingDay >= 15) {
+				price = price * 0.2;
+			} else if (bookingDay >= 10) {
+				price = price * 0.3;
+			} else if (bookingDay >= 1) {
+				price = price * 0.5;
+			} else {
+				System.out.println("진행된 예약이 없거나 ID 또는 예약번호가 틀렸습니다.");
+				return;
+			}
+
+			System.out.println("취소 패널티 " + bookingDay + "일 전 : " + (int)price + "원");
+
+			pstmt = con.prepareStatement(sql);
+			System.out.println("---------------------------");
+			System.out.println("정말 취소하시겠습니까? 1. Y | 2. N");
+			System.out.println("---------------------------");
+			System.out.print("선택 : ");
+			int select = sc.nextInt();
+			switch (select) {
+			case 1 :
+				System.out.print("ID 재확인 : ");
+				pstmt.setString(2, sc.next());
+				System.out.print("예약번호 재확인 : ");
+				pstmt.setString(1, sc.next());
+				int result = pstmt.executeUpdate();
+				if (result > 0) {
+					System.out.println("예약 취소가 완료되었습니다.");
+					System.out.println("환불 금액 : " + (int)(sal-price) + "원 입니다.");
+				} else if (result == 0) {
+					System.out.println("ID 또는 예약번호가 틀렸습니다.");
+				}
+				break;
+			case 2 : 
+				System.out.println("예약 취소를 취소하였습니다.");
+				return;
+			}
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	// 예약 변경	
+	// 예약 변경 (총 가격 소수점 제거 완료)
 	public void changeDB() {
-		String sql = "UPDATE RESERVATION SET SDATE = ?, FDATE = ?, ANUMBER = ?, CNUMBER = ?, INUMBER = ?, COUNTRY = ?, AIRLINE = ? WHERE RESERVATIONNO = ? AND ID = ?";
+		String sql = "UPDATE RESERVATION SET COUNTRY = ?, AIRLINE = ?, SDATE = ?, FDATE = ?, ANUMBER = ?, CNUMBER = ?, INUMBER = ?, SAL = ? WHERE RESERVATIONNO = ? AND ID = ?";
 		try {
 			pstmt = con.prepareStatement(sql);
+			int price = 0;
 			System.out.print("ID 확인 : ");
-			pstmt.setString(9, sc.next());
+			pstmt.setString(10, sc.next());
 			System.out.print("예약번호 확인 : ");
-			pstmt.setString(8, sc.next());
-			System.out.print("변경 출발일 : ");
-			pstmt.setString(1, sc.next());
-			System.out.print("변경 도착일 : ");
-			pstmt.setString(2, sc.next());
-			System.out.print("성인(명) : ");
-			pstmt.setString(3, sc.next());
-			System.out.print("소아(명) : ");
-			pstmt.setString(4, sc.next());
-			System.out.print("유아(명) : ");
-			pstmt.setString(5, sc.next());
-			System.out.print("나라 : ");
-			pstmt.setString(6, sc.next());
-			System.out.print("항공사(KE/OZ) : ");
-			pstmt.setString(7, sc.next());
-			int result = pstmt.executeUpdate();
-			if(result > 0) {
+			pstmt.setInt(9, sc.nextInt());
+			System.out.println("------------------------------");
+			System.out.println(" 1. 미국    | 상품가 : 100,000원/1인");
+			System.out.println(" 2. 유럽    | 상품가 : 150,000원/1인");
+			System.out.println(" 3. 동남아 | 상품가 : 50,000원/1인");
+			System.out.println(" 4. 중국    | 상품가 : 20,000원/1인"); 
+			System.out.println(" 5. 일본    | 상품가 : 30,000원/1인");
+			System.out.println("------------------------------");
+			System.out.print("선택 : ");
+			int country = sc.nextInt();
+			switch (country) {
+			case 1:
+				price = 100000;
+				pstmt.setString(1, "미국");
+				break;
+			case 2:
+				price = 150000;
+				pstmt.setString(1, "유럽");
+				break;
+			case 3:
+				price = 50000;
+				pstmt.setString(1, "동남아");
+				break;
+			case 4:
+				price = 20000;
+				pstmt.setString(1, "중국");
+				break;
+			case 5:
+				price = 30000;
+				pstmt.setString(1, "일본");
+				break;
+			}
+			System.out.println("---------------");
+			System.out.println(" 1. KE | 2. OZ");
+			System.out.println("---------------");
+			System.out.print("선택 : ");
+			int airLine = sc.nextInt();
+			switch (airLine) {
+			case 1:
+				price = (int) ((double) price * 1.2);
+				pstmt.setString(2, "KE");
+				break;
+			case 2:
+				price = price;
+				pstmt.setString(2, "OZ");
+				break;
+			}	System.out.print("변경 출발일 : ");
+				pstmt.setString(3, sc.next());
+				System.out.print("변경 도착일 : ");
+				pstmt.setString(4, sc.next());
+				System.out.print("성인(명) : ");
+				int anumber = sc.nextInt();
+				pstmt.setInt(5, anumber);
+				System.out.print("소아(명) : ");
+				int cnumber = sc.nextInt();
+				pstmt.setInt(6, cnumber);
+				System.out.print("유아(명) : ");
+				int inumber = sc.nextInt();
+				pstmt.setInt(7, inumber);
+				int sal = (int) ((anumber * price) + (cnumber * price * 0.7) + (inumber * price * 0.2));
+				System.out.println("총 가격은 " + sal + "원 입니다.");
+				pstmt.setInt(8, sal);
+				int result = pstmt.executeUpdate();
+			if (result > 0) {
 				System.out.println("예약 변경이 완료되었습니다.");
-			} else if(result == 0) {
+			} else if (result == 0) {
 				System.out.println("ID 또는 예약번호가 틀렸습니다.");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-
 }

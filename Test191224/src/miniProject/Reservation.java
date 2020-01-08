@@ -2,75 +2,67 @@ package miniProject;
 
 public class Reservation {
 
-	private String sdate;
-	private String fdate;
-	private String aNumber;
-	private String cNumber;
-	private String iNumber;
-	private String country;
-	private String airLine;
-	
-	@Override
-	public String toString() {
-		return "Reservation [sdate=" + sdate + ", fdate=" + fdate + ", aNumber=" + aNumber + ", cNumber=" + cNumber
-				+ ", iNumber=" + iNumber + ", country=" + country + ", airLine=" + airLine + "]";
-	}
+ private int tourNumber;
+ private String sdate;
+ private String fdate;
+ private String country;
+ private String airLine;
+ private int price;
+ 
+ @Override
+ public String toString() {
+  return "Reservation [tourNumber=" + tourNumber + ", sdate=" + sdate + ", fdate=" + fdate + ", country="
+    + country + ", airLine=" + airLine + ", price=" + price + "]";
+ }
 
-	public String getSdate() {
-		return sdate;
-	}
+ public int getTourNumber() {
+  return tourNumber;
+ }
 
-	public void setSdate(String sdate) {
-		this.sdate = sdate;
-	}
+ public void setTourNumber(int tourNumber) {
+  this.tourNumber = tourNumber;
+ }
 
-	public String getFdate() {
-		return fdate;
-	}
+ public String getSdate() {
+  return sdate;
+ }
 
-	public void setFdate(String fdate) {
-		this.fdate = fdate;
-	}
+ public void setSdate(String sdate) {
+  this.sdate = sdate;
+ }
 
-	public String getaNumber() {
-		return aNumber;
-	}
+ public String getFdate() {
+  return fdate;
+ }
 
-	public void setaNumber(String aNumber) {
-		this.aNumber = aNumber;
-	}
+ public void setFdate(String fdate) {
+  this.fdate = fdate;
+ }
 
-	public String getcNumber() {
-		return cNumber;
-	}
+ public String getCountry() {
+  return country;
+ }
 
-	public void setcNumber(String cNumber) {
-		this.cNumber = cNumber;
-	}
+ public void setCountry(String country) {
+  this.country = country;
+ }
 
-	public String getiNumber() {
-		return iNumber;
-	}
+ public String getAirLine() {
+  return airLine;
+ }
 
-	public void setiNumber(String iNumber) {
-		this.iNumber = iNumber;
-	}
+ public void setAirLine(String airLine) {
+  this.airLine = airLine;
+ }
 
-	public String getCountry() {
-		return country;
-	}
+ public int getPrice() {
+  return price;
+ }
 
-	public void setCountry(String country) {
-		this.country = country;
-	}
+ public void setPrice(int price) {
+  this.price = price;
+ }
+ 
 
-	public String getAirLine() {
-		return airLine;
-	}
 
-	public void setAirLine(String airLine) {
-		this.airLine = airLine;
-	}
-	
-	
 }
